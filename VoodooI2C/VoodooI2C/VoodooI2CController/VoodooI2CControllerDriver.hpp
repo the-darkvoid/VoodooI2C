@@ -287,6 +287,15 @@ class VoodooI2CControllerDriver : public IOService {
      */
 
     IOReturn waitBusNotBusyI2C();
+
+    IONotifier* device_matcher;
+    IONotifier* terminate_matcher;
+    
+    static bool attachKeyboard(void* target, void* ref_con, IOService* new_service, IONotifier* notifier);
+    static bool detachKeyboard(void* target, void* ref_con, IOService* new_service, IONotifier* notifier);
+    virtual void receiveMessage(int message, void* data);
+
+    IOReturn notifyKeyboardEvent(UInt32 type, IOService *provider, void *argument);
 };
 
 

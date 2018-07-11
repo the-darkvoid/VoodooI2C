@@ -143,5 +143,8 @@ DW_IC_TX_ABRT_GCALL_NOACK)
 
 #define DW_IC_STATUS_ACTIVITY 0x1
 
+#define kKeyboardGetStatus iokit_vendor_specific_msg(1)
+#define kKeyboardSetStatus iokit_vendor_specific_msg(2)
+#define kKeyboardKeyEvent iokit_vendor_specific_msg(3)
 
 #endif /* VoodooI2CControllerConstants_h */

@@ -13,3 +13,7 @@
 [submodule "VoodooI2C Satellites/VoodooI2CSynaptics"]
 	path = VoodooI2C Satellites/VoodooI2CSynaptics
 	url = https://github.com/alexandred/VoodooI2CSynaptics.git
+[submodule "Dependencies/VoodooPS2"]
+	path = Dependencies/VoodooPS2
+	url = https://github.com/RehabMan/OS-X-Voodoo-PS2-Controller.git
+	branch = master
