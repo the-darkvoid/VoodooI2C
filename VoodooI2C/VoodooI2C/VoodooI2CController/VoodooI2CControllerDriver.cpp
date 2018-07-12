@@ -10,8 +10,6 @@
 #include "VoodooI2CControllerDriver.hpp"
 #include "VoodooI2CController.hpp"
 
-#include "../../../Dependencies/VoodooPS2/VoodooPS2Controller/ApplePS2MouseDevice.h"
-
 #define readRegister(X) nub->readRegister(X)
 #define writeRegister(X, Y) nub->writeRegister(X, Y)
 
@@ -407,9 +405,6 @@ IOReturn VoodooI2CControllerDriver::setPowerState(unsigned long whichState, IOSe
 bool VoodooI2CControllerDriver::start(IOService* provider) {
     if (!super::start(provider))
         return false;
-    
-    device_matcher = addMatchingNotification(gIOMatchedNotification, serviceMatching("ApplePS2MouseDevice"), VoodooI2CControllerDriver::attachKeyboard, this, NULL, 0);
-    terminate_matcher = addMatchingNotification(gIOTerminatedNotification, serviceMatching("ApplePS2MouseDevice"), VoodooI2CControllerDriver::detachKeyboard, this, NULL, 0);
 
     PMinit();
 
@@ -654,92 +649,5 @@ IOReturn VoodooI2CControllerDriver::waitBusNotBusyI2C() {
         IODelay(1100);
     }
 
-    return kIOReturnSuccess;
-}
-
-bool VoodooI2CControllerDriver::attachKeyboard(void* target, void* ref_con, IOService* new_service, IONotifier* notifier) {
-    IOLog("Voodoo Attached class: %s\n", new_service->getMetaClass()->getClassName());
-    
-    ApplePS2MouseDevice * device = (ApplePS2MouseDevice*)new_service;
-    
-    if (device != NULL) {
-        device->installMessageAction((OSObject*)target,
-                                     OSMemberFunctionCast(PS2MessageAction, (OSMetaClassBase*)target, &VoodooI2CControllerDriver::receiveMessage));
-    }
-    
-    //new_service->attach((IOService*)target);
-    return true;
-}
-
-bool VoodooI2CControllerDriver::detachKeyboard(void* target, void* ref_con, IOService* new_service, IONotifier* notifier) {
-    IOLog("Voodoo Detached class: %s\n", new_service->getMetaClass()->getClassName());
-    //new_service->detach((IOService*)target);
-    return true;
-}
-
-void VoodooI2CControllerDriver::receiveMessage(int message, void* data)
-{
-    switch (message)
-    {
-        case kPS2M_getDisableTouchpad:
-        {
-            this->notifyKeyboardEvent(kKeyboardGetStatus, this, data);
-            break;
-        }
-        case kPS2M_setDisableTouchpad:
-        {
-            this->notifyKeyboardEvent(kKeyboardSetStatus, this, data);
-            break;
-        }
-        case kPS2M_notifyKeyPressed:
-        {
-            // Register last key press, used for palm detection
-            PS2KeyInfo* pInfo = (PS2KeyInfo*)data;
-
-            switch (pInfo->adbKeyCode)
-            {
-                // Do not trigger on modifier key down presses (for example multi-click select)
-                case 0x38:  // left shift
-                case 0x3c:  // right shift
-                case 0x3b:  // left control
-                case 0x3e:  // right control
-                case 0x3a:  // left windows (option)
-                case 0x3d:  // right windows
-                case 0x37:  // left alt (command)
-                case 0x36:  // right alt
-                case 0x3f:  // osx fn (function)
-                    if (!pInfo->goingDown)
-                        this->notifyKeyboardEvent(kKeyboardKeyEvent, this, &(pInfo->time));
-                    break;
-                default:
-                    this->notifyKeyboardEvent(kKeyboardKeyEvent, this, &(pInfo->time));
-            }
-            break;
-        }
-    }
-}
-
-IOReturn VoodooI2CControllerDriver::notifyKeyboardEvent(UInt32 type, IOService *provider, void *argument)
-{
-        IOLog("VoodooI2CControllerDriver::message: type=%x, provider=%p, argument=%p, argument=%04x\n", type, provider, argument, *static_cast<UInt64*>(argument));
-
-    // Forward to all attached services with property "receiveKeyboardNotifications" set
-    IORegistryIterator *i = IORegistryIterator::iterateOver(this, gIOServicePlane, kIORegistryIterateRecursively);
-
-    if (i != NULL)
-    {
-        while (IORegistryEntry *entry = i->getNextObject())
-        {
-            IOService* service = OSDynamicCast(IOService, entry);
-
-            if (service != NULL && service->getProperty("receiveKeyboardNotifications"))
-            {
-                service->message(type, provider, argument);
-            }
-        }
-
-        i->release();
-    }
-    
     return kIOReturnSuccess;
 }
