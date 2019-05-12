@@ -24,6 +24,7 @@ The following device classes are fully supported:
 
 1. I2C-HID devices
 2. ELAN devices
+3. FTE devices
 
 Note that there is sometimes an overlap between device classes. For example, some ELAN devices may also be I2C-HID devices.
 
@@ -51,7 +52,3 @@ We are looking for competent C++, OS X kernel, Linux kernel, I2C, HID etc develo
 * Create a new feature branch and add commits
 * Push your feature branch to your fork
 * Submit a pull request upstream
-
-## Donations
-
-Donations can be made via Bitcoin to the following wallet: https://live.blockcypher.com/btc/address/1EUxSExh8XCveWxVDVQqnez2o95AnG8Qhr/ .
